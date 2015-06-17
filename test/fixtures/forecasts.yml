@@ -1,0 +1,21 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  time: 1
+  temp: 1
+  dewpoint: 1
+  wspd: 1
+  wdir: 1
+  humidity: 1
+  feelslike: 1
+  pressure: 1
+
+two:
+  time: 1
+  temp: 1
+  dewpoint: 1
+  wspd: 1
+  wdir: 1
+  humidity: 1
+  feelslike: 1
+  pressure: 1
