@@ -1,15 +1,22 @@
+<ul class='side-nav fixed' id='controls'>
+  <li></li>
+  <li ><%= image_tag image_path('weather_logos.png'), {width:'100%',height:'100%'} %></li>
+  <li><a class="waves-effect waves-teal btn-flat" id='temp'>Temp</a></li>
+  <li><a class="waves-effect waves-teal btn-flat" id='dewpoint'>Dewpont</a></li>
+  <li><a class="waves-effect waves-teal btn-flat" id='wind'>Wind</a></li>
+  <li><a class="waves-effect waves-teal btn-flat" id='humidity'>Humidity</a></li>
+  <li><a class="waves-effect waves-teal btn-flat" id='feelslike'>Feels Like</a></li>
+  <li><a class="waves-effect waves-teal btn-flat" id='pressure'>Pressure</a></li>
+</ul>
 <div class='container'>
-  <div class='row' id='controls'>
-    <a class="waves-effect waves-teal btn-flat" id='temp'>Temp</a>
-    <a class="waves-effect waves-teal btn-flat" id='dewpoint'>Dewpont</a>
-    <a class="waves-effect waves-teal btn-flat" id='wind'>Wind</a>
-    <a class="waves-effect waves-teal btn-flat" id='humidity'>Humidity</a>
-    <a class="waves-effect waves-teal btn-flat" id='feelslike'>Feels Like</a>
-    <a class="waves-effect waves-teal btn-flat" id='pressure'>Pressure</a>
-  </div>
   <div class='row'>
-    <div class='center-align' id='time'>12:00</div>
+    <div id='scale'></div>
   </div>
   <div id='map'></div>
-  <div id='scale' class='row'></div>
+  <div class='row valign-wrapper'>
+    <div class='col s1' id='rw'><i class="medium mdi-av-fast-rewind"></i></div>
+    <div class='col s10 center-align' id='time'>12:00</div>
+    <div class='col s1' id='ff'><i class="medium mdi-av-fast-forward"></i></div>
+  </div>
+  <!-- <div id='scale' class='row'></div> -->
 </div>

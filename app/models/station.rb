@@ -1,13 +1,24 @@
 class Station < ActiveRecord::Base
   has_many :forecasts
 
+  @@count = 0
+
+  def check_count
+    if @@count == 10
+      sleep(60)
+      @count = 0
+    end
+    @@count += 1
+  end
+
   def set_forecasts
+    self.check_count
     raw_request = Unirest.get("http://api.wunderground.com/api/#{ENV['WUAPI_KEY']}/hourly/q/pws:#{self.pws_id}.json").body
     raw_request['hourly_forecast'].each do |hour|
       forecast = Forecast.new
       forecast.parse_request(hour)
       forecast.station_id = self.id
-      forecast.save
+      forecast.save ? nil : byebug
     end
   end
 
@@ -16,6 +27,7 @@ class Station < ActiveRecord::Base
     {
       name: self.pws_id,
       coords: [self.lat,self.lng],
+      start_time: forecasts.map(&:time),
       temp: forecasts.map(&:temp),
       dewpoint: forecasts.map(&:dewpoint),
       wspd: forecasts.map(&:wspd),
