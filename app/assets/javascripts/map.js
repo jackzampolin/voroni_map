@@ -1,5 +1,5 @@
 // Global variables
-var map, interval, speed = 500;
+var map, interval, speed = 250;
 
 // Code to draw the various overlays
 var m = (function(){
@@ -502,6 +502,9 @@ var init = (function(){
     });
   };
   var controls = function(){
+    $(document).keyup(function(e){
+      if(e.keyCode === 32 && interval){ clearInterval(interval) };
+    });
     $('#controls a').on('click',function(e){
       var attribute = $(this).attr('id');
       if (attribute === 'temp' || attribute === 'feelslike') {
