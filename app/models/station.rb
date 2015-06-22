@@ -36,6 +36,7 @@ class Station < ActiveRecord::Base
       temp: forecasts.map(&:temp),
       dewpoint: forecasts.map(&:dewpoint),
       wspd: forecasts.map(&:wspd),
+      fctcode: forecasts.map(&:fctcode),
       wdir: forecasts.map(&:wdir),
       humidity: forecasts.map(&:humidity),
       feelslike: forecasts.map(&:feelslike),
