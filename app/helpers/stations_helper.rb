@@ -34,6 +34,8 @@ module StationsHelper
         ar1.each_index.map do |index|
           red = check_value(ar1[index])
           blue = check_value(ar3[index])
+          red.length == 1 ? red = '0'+red : nil
+          blue.length == 1 ? blue = '0'+blue : nil
           "#" + "#{red}#{'00'}#{blue}"
         end
       end

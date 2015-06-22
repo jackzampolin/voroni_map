@@ -5,8 +5,9 @@ class Station < ActiveRecord::Base
 
   def check_count
     if @@count == 10
+      p "Sleeping for a minute..."
       sleep(60)
-      @count = 0
+      @@count = 0
     end
     @@count += 1
   end
@@ -18,7 +19,11 @@ class Station < ActiveRecord::Base
       forecast = Forecast.new
       forecast.parse_request(hour)
       forecast.station_id = self.id
-      forecast.save ? nil : byebug
+      if forecast.save
+        p "Forecast #{forecast.id} connected to Station #{self.id} saved"
+      else
+        byebug
+      end
     end
   end
 

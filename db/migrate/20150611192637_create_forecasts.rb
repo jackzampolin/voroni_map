@@ -7,6 +7,7 @@ class CreateForecasts < ActiveRecord::Migration
       t.integer :wspd
       t.integer :wdir
       t.integer :humidity
+      t.integer :fctcode
       t.integer :feelslike
       t.integer :pressure
       t.integer :station_id

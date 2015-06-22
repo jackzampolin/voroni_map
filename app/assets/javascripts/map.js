@@ -1,4 +1,4 @@
-// All map related functions
+  // All map related functions
 var m = (function(){
   // Properly formats the geojson
   var voroni = function(stations){
@@ -17,6 +17,23 @@ var m = (function(){
     L.mapbox.accessToken = key;
     map = L.mapbox.map('map', 'mapbox.streets')
       .setView([37.767662,-122.444759],13);
+    L.RotatedMarker = L.Marker.extend({
+      options: { angle: 0 },
+      _setPos: function(pos) {
+        L.Marker.prototype._setPos.call(this, pos);
+        if (L.DomUtil.TRANSFORM) {
+          // use the CSS transform rule if available
+          this._icon.style[L.DomUtil.TRANSFORM] += ' rotate(' + this.options.angle + 'deg)';
+        } else if (L.Browser.ie) {
+          // fallback for IE6, IE7, IE8
+          var rad = this.options.angle * L.LatLng.DEG_TO_RAD,
+          costheta = Math.cos(rad),
+          sintheta = Math.sin(rad);
+          this._icon.style.filter += ' progid:DXImageTransform.Microsoft.Matrix(sizingMethod=\'auto expand\', M11=' +
+            costheta + ', M12=' + (-sintheta) + ', M21=' + sintheta + ', M22=' + costheta + ')';
+        }
+      }
+    });
   };
   // draws polygons for the feelslike and temp layers
   var drawPolys = function(data, attribute, count){
@@ -33,16 +50,25 @@ var m = (function(){
     var stations = data.payload;
     var colors = data.colors[attribute];
     var polys = voroni(stations);
+    var lastStat = null;
     // Draw Polys and add them to feature layer
     for(var i = 0; i < polys.length; i++){
-      var stat = stations[i][attribute][count];
+      var station = stations[i];
+      var attr = station[attribute];
+      var stat = attr[count];
+      if (stat) {
+        lastStat = stations[i][attribute][count];
+      } else {
+        stat = lastStat;
+      };
       var poly = L.polygon(polys[i],{
         weight: 2,
         color: colors[stat],
         fillColor: colors[stat],
         fillOpacity: 0.3
       });
-      poly.bindPopup('<p>'+stat+'°F</p>')
+      var stationLink = "http://www.wunderground.com/personal-weather-station/dashboard?ID="
+      poly.bindPopup('<p><a target="_blank" href="'+stationLink+station.name+'">'+station.name+'</a></p><p class="center-align">'+stat+'°F</p>')
       poly.addTo(layer)
     }
     // Add layer to map.
@@ -57,25 +83,43 @@ var m = (function(){
         };
       };
     });
-    //
+
+    // Initialize variables
     var layer = L.mapbox.featureLayer();
     var stations = data.payload;
     var colors = data.colors.wspd;
+    // Draw legend
+    legend.scale(' MPH',colors);
     // Draw circles and add them to feature layer
     for(var i = 0; i < stations.length ; i++){
       var station = stations[i];
       var stat = station.wspd[count];
-      var circle = L.circleMarker(station.coords, {weight: 2,color: colors[stat], fillColor: colors[stat], fillOpacity: 0.3 });
-      if (station.wspd[count] === undefined) {
-        circle.setRadius(0)
-      } else {
-        circle.setRadius(station.wspd[count])
+      if (stat) {
+        var circle = L.circleMarker(station.coords, {weight: 2,color: colors[stat], fillColor: colors[stat], fillOpacity: 0.3 });
+        circle.setRadius(stat)
+        circle.addTo(layer)
+        if (station.wdir[count]) {
+          var marker = L.marker(station.coords)
+          var arrow = L.icon({
+            iconUrl: 'http://www.clipartbest.com/cliparts/RcA/7ax/RcA7axMRi.png',
+            iconSize: [24,24],
+            className: 'arrows',
+          });
+          marker.setIcon(arrow);
+          var stationLink = "http://www.wunderground.com/personal-weather-station/dashboard?ID="
+          marker.bindPopup('<p><a target="_blank" href="'+stationLink+station.name+'">'+station.name+'</a></p><p class="center-align">'+stat+' MPH</p>')
+          marker.addTo(layer);
+        }
+
       }
-      circle.bindPopup('<p>'+stat+' MPH</p>')
-      circle.addTo(layer)
     }
     // Add layer to map.
     layer.addTo(map);
+    $('.arrows').each(function( i ){
+      var station = stations[i];
+      var stat = station.wdir[count];
+      this.style.transform += 'rotate('+stat+'deg)';
+    });
   };
   return {
     setMap: setMap,
@@ -125,7 +169,7 @@ var legend = (function(){
     var time = store.time().getHours();
     $('#time').html(formatTime(time + counter))
   };
-  var scale = function(colors){
+  var scale = function(scale, colors){
     // Clear out target div
     if ($('#scale').children().length > 0){
       $('#scale').html('');
@@ -136,9 +180,9 @@ var legend = (function(){
     var hot = keys.pop();
     var middle = keys[Math.round(keys.length/2)];
     // Create divs
-    cold = $('<a></a>').html(cold+'°F').attr('class','btn col s2').css('background-color', colors[cold]);
-    middle = $('<a></a>').html(middle+'°F').attr('class','waves-effect waves-light btn col s2').css('background-color', colors[middle]);
-    hot = $('<a></a>').html(hot+'°F').attr('class','waves-effect waves-light btn col s2').css('background-color', colors[hot]);
+    cold = $('<a></a>').html(cold+scale).attr('class','btn col s2').css('background-color', colors[cold]);
+    middle = $('<a></a>').html(middle+scale).attr('class','waves-effect waves-light btn col s2').css('background-color', colors[middle]);
+    hot = $('<a></a>').html(hot+scale).attr('class','waves-effect waves-light btn col s2').css('background-color', colors[hot]);
     // Append divs
     spacer = $('<div class="col s3">FOOOOOOOO</div>').css('color','white')
     $('#scale').prepend(hot, spacer.clone(), middle, spacer.clone(), cold)
@@ -149,7 +193,7 @@ var legend = (function(){
   };
 })();
 
-// Button controls: Depends on layers module
+// More fully integrated map views with their associated helpers.
 var views = (function(){
   // counter for the animation
   var counter = (function() {
@@ -192,7 +236,7 @@ var views = (function(){
   var temp = function(attribute){
     var data = store.get();
     counter.reset();
-    legend.scale(data.colors[attribute]);
+    legend.scale('°F',data.colors[attribute]);
     layers.temp(attribute,data,counter.value());
     $('body').off();
     $('#ff').off();
@@ -250,10 +294,10 @@ var views = (function(){
 var init = (function(){
   var page = function(){
     $.get('/stations').done(function(data){
-      // Initializes the map
-      m.setMap(data.key);
       // Sets data from backend in local storage
       store.set(data);
+      // Initializes the map
+      m.setMap(data.key);
       // Starts with temp layer
       views.temp('temp')
     });
